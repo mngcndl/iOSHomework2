@@ -1,0 +1,149 @@
+import Foundation
+class TeamMember {
+    let name: String
+    var damage: Double
+    var lifeLevel: Int
+    init (name: String, damage: Double, lifeLevel: Int) {
+        self.name = name
+        self.damage = damage
+        self.lifeLevel = lifeLevel
+    }
+    
+    func teamMemberWasKilled() {
+        print(self.name + " is out of game.")
+    }
+}
+
+class Team {
+    let numberOfMembers: Int = 4
+    let name: String
+    var teamMembers: Array<TeamMember> = Array()
+    init (name: String) {
+        self.name = name
+        teamMembers = Array()
+        for i in 0...numberOfMembers {
+            let newTeamMember = TeamMember(name: self.name + ", team member" + String(i), damage: Double.random(in: 1...30), lifeLevel: 4)
+            teamMembers.append(newTeamMember)
+        }
+    }
+}
+
+class GameItem {
+    let name: String
+    let damageChangeCoefficient: Double
+    init (name: String, damageChangeCoefficient: Double) {
+        self.name = name
+        self.damageChangeCoefficient = damageChangeCoefficient
+    }
+    func applyGameItem(teamMember: TeamMember) {
+        teamMember.damage *= self.damageChangeCoefficient
+    }
+}
+
+func aPowB(a: Int, b: Int) -> Int {
+    var res = 1
+    for _ in 1...b{
+        res *= a
+    }
+    return res
+}
+
+print("Choose the number of teams")
+if let n = readLine(), let power = Int(n){
+    let numberOfTeams = aPowB(a: 2, b: power)
+    var listOfTeams: Array<Team> = Array()
+    for i in 1...numberOfTeams {
+        let teamName: String = "Team " + String(i)
+        let teamI = Team(name: teamName)
+        listOfTeams.append(teamI)
+    }
+    let numberOfRounds: Int = Int.random(in: 1...20)
+    print("Number of rounds:", numberOfRounds)
+    
+    var listOfGameItems: Array<GameItem> = Array()
+    listOfGameItems.append(GameItem(name: "Cursed Pendant", damageChangeCoefficient: 0.5))
+    listOfGameItems.append(GameItem(name: "Phoenix Feather Cape", damageChangeCoefficient: 1.2))
+    listOfGameItems.append(GameItem(name: "Heroic Talisman", damageChangeCoefficient: 1.5))
+    listOfGameItems.append(GameItem(name: "Dark Shroud", damageChangeCoefficient: 0.3))
+    listOfGameItems.append(GameItem(name: "Soul Drainer", damageChangeCoefficient: 0.1))
+    
+    for i in 1...numberOfRounds {
+        print("ROUND \(i)\nType number of teams to fight in this round: ")
+        if let number1 = readLine(), let number2 = readLine(), let firstTeamNumber = Int(number1), let secondTeamNumber = Int(number2) {
+            let team1 = listOfTeams[firstTeamNumber]
+            let team2 = listOfTeams[secondTeamNumber]
+            var damageToFirstTeam: Double = 0
+            var damageToSecondTeam: Double = 0
+            var killedTeamMembersTeam1: Int = 0
+            var killedTeamMembersTeam2: Int = 0
+            
+            for k in 0...3 {
+                let teamMember1 = team1.teamMembers[k]
+                let teamMember2 = team2.teamMembers[k]
+                if teamMember1.lifeLevel > 0 && teamMember2.lifeLevel > 0 {
+                    if teamMember1.damage > teamMember2.damage {
+                        teamMember2.lifeLevel -= 1
+                        damageToSecondTeam += teamMember1.damage - teamMember2.damage
+                        if teamMember2.lifeLevel == 0 {
+                            teamMember2.teamMemberWasKilled()
+                            killedTeamMembersTeam2 += 1
+                        }
+                    } else if teamMember2.damage > teamMember1.damage {
+                        teamMember1.lifeLevel -= 1
+                        damageToFirstTeam += teamMember2.damage - teamMember1.damage
+                        if teamMember1.lifeLevel == 0 {
+                            teamMember1.teamMemberWasKilled()
+                            killedTeamMembersTeam1 += 1
+                        }
+                    } else {
+                        teamMember1.lifeLevel -= 1
+                        teamMember2.lifeLevel -= 1
+                        if teamMember1.lifeLevel == 0 {
+                            teamMember1.teamMemberWasKilled()
+                            killedTeamMembersTeam1 += 1
+                        }
+                        if teamMember2.lifeLevel == 0 {
+                            teamMember2.teamMemberWasKilled()
+                            killedTeamMembersTeam2 += 1
+                        }
+                    }
+                }
+                else if teamMember1.lifeLevel == 0 && teamMember2.lifeLevel == 0 {
+                    killedTeamMembersTeam1 += 1
+                    killedTeamMembersTeam2 += 1
+                }
+                else if teamMember1.lifeLevel == 0 {
+                    killedTeamMembersTeam1 += 1
+                }
+                else {
+                    killedTeamMembersTeam2 += 1
+                }
+            }
+            if killedTeamMembersTeam1 > killedTeamMembersTeam2 {
+                print(team1.name + " won in this round.\n")
+            }
+            else if killedTeamMembersTeam2 > killedTeamMembersTeam1 {
+                print(team2.name + " won in this round.\n")
+            } else {
+                if damageToFirstTeam > damageToSecondTeam {
+                    print(team1.name + " won in \(i) round.\n")
+                }
+                else if damageToFirstTeam < damageToSecondTeam {
+                    print(team1.name + " won in \(i) round.\n")
+                } else {
+                    print ("This round was a standoff for \(team1) and \(team2)\n")
+                }
+            }
+            var gameItem = listOfGameItems[Int.random(in: 0...4)]
+            var teamMember: TeamMember = team1.teamMembers[Int.random(in:0...3)]
+            gameItem.applyGameItem(teamMember: teamMember)
+            print("Item \(gameItem.name) was applied to \(teamMember.name)")
+            gameItem = listOfGameItems[Int.random(in: 0...4)]
+            teamMember = team2.teamMembers[Int.random(in:0...3)]
+            gameItem.applyGameItem(teamMember: teamMember)
+            print("Item \(gameItem.name) was applied to \(teamMember.name)\n")
+        }
+    }
+}
+
+    
